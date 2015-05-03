@@ -8,7 +8,7 @@ require('source-map-support').install();
 const debug = false;
 const logfn = debug ? console.log.bind(console) : function () {};
 
-const Subscriber = require("../subscriber");
+const Subscriber = require("./subscriber");
 const EventEmitter = require("events").EventEmitter;
 
 describe "Prefix Event Subscriber" {
