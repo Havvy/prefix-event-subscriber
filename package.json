@@ -1,6 +1,6 @@
 {
   "name": "prefix-event-subscriber",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Event subscriber that dispatches to event emitter based on prefix.",
   "main": "subscriber.js",
   "scripts": {
