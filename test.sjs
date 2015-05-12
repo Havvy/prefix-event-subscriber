@@ -119,5 +119,19 @@ describe "Prefix Event Subscriber" {
             subscriber.onWithMetadata("x", handler, metadata);
             assert(metadataOnSpy.calledWithExactly("x", handler, metadata));
         }
+
+        it "metadata is passed through as appropriate with objects" {
+            const metadataHandler = function () {};
+            const normalHandler = function () {};
+            const metadata = {exampleMetadata: true};
+
+            subscriber.onWithMetadata({
+                "x": metadataHandler,
+                "normal:x": normalHandler
+            }, metadata);
+
+            assert(normalOnSpy.calledWithExactly("x", normalHandler));
+            assert(metadataOnSpy.calledWithExactly("x", metadataHandler, metadata));
+        }
     }
 }

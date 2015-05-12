@@ -83,9 +83,9 @@ const PrefixEventSubscriber = function () {
         });
     }
 
-    function objectDispatchWithMetadata (object, metdata, method) {
+    function objectDispatchWithMetadata (object, metadata, method) {
         for (var names in object) {
-            stringDispatch(names, object[names], metadata, method);
+            stringDispatchWithMetadata(names, object[names], metadata, method);
         }
     }
 
