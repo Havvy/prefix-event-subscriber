@@ -15,7 +15,6 @@ describe "Prefix Event Subscriber" {
     var subscriber, defaultEmitter, bangEmitter;
 
     beforeEach {
-        logfn(/* newline */);
         subscriber = new Subscriber();
         defaultEmitter = new EventEmitter();
         bangEmitter = new EventEmitter();
@@ -85,6 +84,40 @@ describe "Prefix Event Subscriber" {
             bangEmitter.emit("x");
             assert(defaultSpy.calledOnce);
             assert(bangSpy.calledOnce);
+        }
+    }
+
+    describe "Metadata flow" {
+        var normalEmitter, metadataEmitter;
+        var normalOnSpy, metadataOnSpy;
+
+        beforeEach {
+            metadataOnSpy = sinon.spy();
+            metadataEmitter = {
+                on: metadataOnSpy
+            };
+
+            normalOnSpy = sinon.spy();
+            normalEmitter = {
+                on: normalOnSpy
+            };
+
+            subscriber.addEmitter(Subscriber.defaultPrefix, metadataEmitter, true);
+            subscriber.addEmitter("normal:", normalEmitter, false);
+        }
+
+        it "metadata is not passed to subscribers not asking for metadata" {
+            const handler = function () {};
+            subscriber.onWithMetadata("normal:x", handler, {exampleMetadata: true});
+            logfn(inspect(normalOnSpy.getCall(0).args));
+            assert(normalOnSpy.calledWithExactly("x", handler));
+        }
+
+        it "metadata is passed to subscribers asking for metadata" {
+            const handler = function () {};
+            const metadata = {exampleMetadata: true}
+            subscriber.onWithMetadata("x", handler, metadata);
+            assert(metadataOnSpy.calledWithExactly("x", handler, metadata));
         }
     }
 }

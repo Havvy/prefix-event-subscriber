@@ -17,7 +17,7 @@ const PrefixEventSubscriber = function () {
         });
     }
 
-    function getEmitterAndPrefix (nameWithPrefix) {
+    function getEmitterData (nameWithPrefix) {
         var prefix = Object.keys(emitters)
         .filter(function (prefix) {
             return startsWith(nameWithPrefix, prefix);
@@ -30,19 +30,21 @@ const PrefixEventSubscriber = function () {
 
             return {
                 prefix: "",
-                emitter: defaultEmitter
+                emitter: defaultEmitter.emitter,
+                acceptsMetadata: defaultEmitter.acceptsMetadata
             };
         } else {
             return {
                 prefix: prefix,
-                emitter: emitters[prefix]
+                emitter: emitters[prefix].emitter,
+                acceptsMetadata: emitters[prefix].acceptsMetadata
             };
         }
     }
 
     function stringDispatch (names, listener, method) {
         names.split(" ").forEach(function (name) {
-            var data = getEmitterAndPrefix(name);
+            var data = getEmitterData(name);
             var emitter = data.emitter;
             var prefix = data.prefix;
 
@@ -66,26 +68,69 @@ const PrefixEventSubscriber = function () {
         }
     }
 
+    function stringDispatchWithMetadata (names, listener, metadata, method) {
+        names.split(" ").forEach(function (name) {
+            var data = getEmitterData(name);
+            var emitter = data.emitter;
+            var prefix = data.prefix;
+            var acceptsMetadata = data.acceptsMetadata;
+
+            if (acceptsMetadata) {
+                emitter[method](name.slice(prefix.length), listener, metadata);
+            } else {
+                emitter[method](name.slice(prefix.length), listener);
+            }
+        });
+    }
+
+    function objectDispatchWithMetadata (object, metdata, method) {
+        for (var names in object) {
+            stringDispatch(names, object[names], metadata, method);
+        }
+    }
+
+    function makeDispatcherWithMetadata (method) {
+        return function () {
+            switch (arguments.length) {
+                case 2: objectDispatchWithMetadata(arguments[0], arguments[1], method); break;
+                case 3: stringDispatchWithMetadata(arguments[0], arguments[1], arguments[2], method); break;
+                default: throw new Error(format("PrefixEventSubscriber.%sWithMetadata takes two (object, object) or three (string, fn, object) arguments.", method));
+            }
+        }
+    }
+
     return {
-        addEmitter: function (prefix, emitter) {
+        addEmitter: function (prefix, emitter, acceptsMetadata) {
+            acceptsMetadata = acceptsMetadata || false;
+
             if (prefix === defaultPrefix) {
                 if (defaultEmitter) {
                     throw new Error("Cannot add multiple default emitters.");
                 }
 
-                defaultEmitter = emitter;
+                defaultEmitter = {
+                    emitter: emitter,
+                    acceptsMetadata: acceptsMetadata
+                };
             } else {
                 if (hasSimilarPrefix(prefix)) {
                     throw new Error("Prefix would shadow or be shadowed by another prefix.");
                 }
 
-                emitters[prefix] = emitter;
+                emitters[prefix] = {
+                    emitter: emitter,
+                    acceptsMetadata: acceptsMetadata
+                };
             }
         },
 
         on : makeDispatcher("on"),
         off: makeDispatcher("off"),
-        once : makeDispatcher("once")
+        once : makeDispatcher("once"),
+
+        onWithMetadata: makeDispatcherWithMetadata("on"),
+        offWithMetadata: makeDispatcherWithMetadata("off"),
+        onceWithMetadata: makeDispatcherWithMetadata("once")
     }
 };
 
