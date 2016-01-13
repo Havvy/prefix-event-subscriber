@@ -22,7 +22,7 @@ describe "Prefix Event Subscriber" {
 
     describe "The Default Emitter" {
         beforeEach {
-            subscriber.addEmitter(Subscriber.defaultPrefix, defaultEmitter);
+            subscriber.addSubscriber(Subscriber.defaultPrefix, defaultEmitter);
         }
 
         it "is a catch-all" {
@@ -34,7 +34,7 @@ describe "Prefix Event Subscriber" {
 
         it "is shadowed by every other emitter" {
             var spy = sinon.spy();
-            subscriber.addEmitter("!", bangEmitter);
+            subscriber.addSubscriber("!", bangEmitter);
             subscriber.on("!x", spy);
             defaultEmitter.emit("!x");
             assert(!spy.called);
@@ -44,7 +44,7 @@ describe "Prefix Event Subscriber" {
 
         it "is shadowed by every other emitter except when they don't match" {
             var spy = sinon.spy();
-            subscriber.addEmitter("!", bangEmitter);
+            subscriber.addSubscriber("!", bangEmitter);
             subscriber.on("x", spy);
             defaultEmitter.emit("x");
             assert(spy.called);
@@ -53,8 +53,8 @@ describe "Prefix Event Subscriber" {
 
     describe "dispatching" {
         beforeEach {
-            subscriber.addEmitter(Subscriber.defaultPrefix, defaultEmitter);
-            subscriber.addEmitter("!", bangEmitter);
+            subscriber.addSubscriber(Subscriber.defaultPrefix, defaultEmitter);
+            subscriber.addSubscriber("!", bangEmitter);
         }
 
         it "can take a string of event names" {
@@ -102,8 +102,8 @@ describe "Prefix Event Subscriber" {
                 on: normalOnSpy
             };
 
-            subscriber.addEmitter(Subscriber.defaultPrefix, metadataEmitter, true);
-            subscriber.addEmitter("normal:", normalEmitter, false);
+            subscriber.addSubscriber(Subscriber.defaultPrefix, metadataEmitter, true);
+            subscriber.addSubscriber("normal:", normalEmitter, false);
         }
 
         it "metadata is not passed to subscribers not asking for metadata" {

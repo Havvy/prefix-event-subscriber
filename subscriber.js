@@ -17,7 +17,7 @@ const PrefixEventSubscriber = function () {
         });
     }
 
-    function getEmitterData (nameWithPrefix) {
+    function getSubscriberData (nameWithPrefix) {
         var prefix = Object.keys(emitters)
         .filter(function (prefix) {
             return startsWith(nameWithPrefix, prefix);
@@ -25,7 +25,7 @@ const PrefixEventSubscriber = function () {
 
         if (!prefix) {
             if (!defaultEmitter) {
-                throw new Error("Could not find an emitter for the event " + nameWithPrefix);
+                throw new Error("Could not find a subscriber for the event " + nameWithPrefix);
             }
 
             return {
@@ -44,7 +44,7 @@ const PrefixEventSubscriber = function () {
 
     function stringDispatch (names, listener, method) {
         names.split(" ").forEach(function (name) {
-            var data = getEmitterData(name);
+            var data = getSubscriberData(name);
             var emitter = data.emitter;
             var prefix = data.prefix;
 
@@ -70,7 +70,7 @@ const PrefixEventSubscriber = function () {
 
     function stringDispatchWithMetadata (names, listener, metadata, method) {
         names.split(" ").forEach(function (name) {
-            var data = getEmitterData(name);
+            var data = getSubscriberData(name);
             var emitter = data.emitter;
             var prefix = data.prefix;
             var acceptsMetadata = data.acceptsMetadata;
@@ -99,30 +99,33 @@ const PrefixEventSubscriber = function () {
         }
     }
 
-    return {
-        addEmitter: function (prefix, emitter, acceptsMetadata) {
-            acceptsMetadata = acceptsMetadata || false;
+    function addSubscriber (prefix, emitter, acceptsMetadata) {
+        acceptsMetadata = acceptsMetadata || false;
 
-            if (prefix === defaultPrefix) {
-                if (defaultEmitter) {
-                    throw new Error("Cannot add multiple default emitters.");
-                }
-
-                defaultEmitter = {
-                    emitter: emitter,
-                    acceptsMetadata: acceptsMetadata
-                };
-            } else {
-                if (hasSimilarPrefix(prefix)) {
-                    throw new Error("Prefix would shadow or be shadowed by another prefix.");
-                }
-
-                emitters[prefix] = {
-                    emitter: emitter,
-                    acceptsMetadata: acceptsMetadata
-                };
+        if (prefix === defaultPrefix) {
+            if (defaultEmitter) {
+                throw new Error("Cannot add multiple default emitters.");
             }
-        },
+
+            defaultEmitter = {
+                emitter: emitter,
+                acceptsMetadata: acceptsMetadata
+            };
+        } else {
+            if (hasSimilarPrefix(prefix)) {
+                throw new Error("Prefix would shadow or be shadowed by another prefix.");
+            }
+
+            emitters[prefix] = {
+                emitter: emitter,
+                acceptsMetadata: acceptsMetadata
+            };
+        }
+    };
+
+    return {
+        addEmitter: addSubscriber,
+        addSubscriber: addSubscriber,
 
         on : makeDispatcher("on"),
         off: makeDispatcher("off"),
